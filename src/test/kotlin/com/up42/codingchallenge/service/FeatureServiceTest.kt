@@ -1,27 +1,18 @@
-package com.up42.codingchallenge
+package com.up42.codingchallenge.service
 
-import io.restassured.RestAssured
-import io.restassured.RestAssured.given
-import org.hamcrest.Matchers.equalTo
-import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.web.server.LocalServerPort
+import java.util.UUID
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class FeaturesControllerTest {
-    @LocalServerPort
-    var port: Int = 0
+class FeatureServiceTest {
 
-    @BeforeAll
-    fun beforeAll() {
-        RestAssured.port = port
-    }
+    private val featureService = FeatureService()
 
     @Test
-    fun `should return all features`() {
+    fun `should get feature list`() {
         data class ExpectedFeature(
             val id: String,
             val timestamp: Long,
@@ -131,18 +122,16 @@ class FeaturesControllerTest {
             ),
         )
 
-        given()
-            .get("/features")
-            .then()
-            .statusCode(200)
-            .also { validatableResponse ->
-                expectedFeatures.forEach { feature ->
-                    validatableResponse.body("id[${feature.key}]", equalTo(feature.value.id))
-                        .body("timestamp[${feature.key}]", equalTo(feature.value.timestamp))
-                        .body("beginViewingDate[${feature.key}]", equalTo(feature.value.beginViewingDate))
-                        .body("endViewingDate[${feature.key}]", equalTo(feature.value.endViewingDate))
-                        .body("missionName[${feature.key}]", equalTo(feature.value.missionName))
-                }
-            }
+        val response = featureService.getFeatures()
+
+        expectedFeatures.forEach { feature ->
+            val actual = response.firstOrNull { it.id == UUID.fromString(feature.value.id) }
+            assertNotNull(actual)
+            assertEquals(feature.value.id, actual?.id.toString())
+            assertEquals(feature.value.timestamp, actual?.timestamp)
+            assertEquals(feature.value.beginViewingDate, actual?.beginViewingDate)
+            assertEquals(feature.value.endViewingDate, actual?.endViewingDate)
+            assertEquals(feature.value.missionName, actual?.missionName)
+        }
     }
 }
