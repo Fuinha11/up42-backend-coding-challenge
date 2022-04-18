@@ -1,11 +1,11 @@
 package com.up42.codingchallenge.service
 
+import com.up42.codingchallenge.error.FeatureNotFoundException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertThrows
-import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -158,7 +158,7 @@ class FeatureServiceTest {
     @Test
     fun `should not get feature by invalid id`() {
         val invalidId = UUID.fromString("aeaa71d6-c549-4620-99ce-f8cae750b8d6")
-        assertThrows<ResponseStatusException> {
+        assertThrows<FeatureNotFoundException> {
             featureService.getFeatureById(invalidId)
         }
     }
