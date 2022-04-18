@@ -37,4 +37,20 @@ class FeaturesControllerTest {
             .contentType("image/png")
             .body(anything())
     }
+    @Test
+    fun `should get error response for wrong id`() {
+        given()
+            .get("/features/aeaa71d6-c549-4620-99ce-f8cae750b8d0/quicklook")
+            .then()
+            .statusCode(404)
+            .body(anything())
+    }
+    @Test
+    fun `should get error response for invalid id`() {
+        given()
+            .get("/features/aeaa71d6-c549-4620-99ce-f8cae750b8d50/quicklook")
+            .then()
+            .statusCode(500)
+            .body(anything())
+    }
 }
