@@ -34,4 +34,17 @@ class FeatureService {
                 }
         return features
     }
+
+    fun getFeatureById(searchId: UUID): FeatureCollection.Feature =
+        getFeatures()
+            .filter { it.id == searchId }
+            .ifEmpty {
+                throw ResponseStatusException(HttpStatus.NOT_FOUND, "No features found with ID: $searchId")
+            }.first()
+
+    fun getFeatureQuicklookById(searchId: UUID): ByteArray {
+        return Base64.decodeBase64(
+            getFeatureById(searchId).properties?.quicklook!!
+        )
+    }
 }
