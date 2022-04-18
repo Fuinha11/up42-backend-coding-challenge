@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.assertThrows
+import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -11,15 +13,15 @@ class FeatureServiceTest {
 
     private val featureService = FeatureService()
 
+    data class ExpectedFeature(
+        val id: String,
+        val timestamp: Long,
+        val beginViewingDate: Long,
+        val endViewingDate: Long,
+        val missionName: String
+    )
     @Test
     fun `should get feature list`() {
-        data class ExpectedFeature(
-            val id: String,
-            val timestamp: Long,
-            val beginViewingDate: Long,
-            val endViewingDate: Long,
-            val missionName: String
-        )
 
         val expectedFeatures = mapOf(
             0 to ExpectedFeature(
@@ -133,5 +135,37 @@ class FeatureServiceTest {
             assertEquals(feature.value.endViewingDate, actual?.endViewingDate)
             assertEquals(feature.value.missionName, actual?.missionName)
         }
+    }
+
+    @Test
+    fun `should get feature by id`() {
+        val expected = ExpectedFeature(
+            id = "aeaa71d6-c549-4620-99ce-f8cae750b8d5",
+            timestamp = 1560015145495,
+            beginViewingDate = 1560015145495,
+            endViewingDate = 1560015170493,
+            missionName = "Sentinel-1B"
+        )
+
+        val actual = featureService.getFeatureById(UUID.fromString(expected.id))
+        assertNotNull(actual)
+        assertEquals(expected.id, actual.id.toString())
+        assertEquals(expected.timestamp, actual.timestamp)
+        assertEquals(expected.beginViewingDate, actual.beginViewingDate)
+        assertEquals(expected.endViewingDate, actual.endViewingDate)
+        assertEquals(expected.missionName, actual.missionName)
+    }
+    @Test
+    fun `should not get feature by invalid id`() {
+        val invalidId = UUID.fromString("aeaa71d6-c549-4620-99ce-f8cae750b8d6")
+        assertThrows<ResponseStatusException> {
+            featureService.getFeatureById(invalidId)
+        }
+    }
+    @Test
+    fun `should get feature's quicklook by id`() {
+        val expectedId = "aeaa71d6-c549-4620-99ce-f8cae750b8d5"
+        val actual = featureService.getFeatureQuicklookById(UUID.fromString(expectedId))
+        assertNotNull(actual)
     }
 }
