@@ -2,20 +2,22 @@ package com.up42.codingchallenge.service
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.up42.codingchallenge.error.EmptyDatabaseException
+import com.up42.codingchallenge.error.FeatureNotFoundException
 import com.up42.codingchallenge.model.FeatureCollection
 import org.apache.tomcat.util.codec.binary.Base64
 import org.springframework.core.io.ClassPathResource
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
-import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
+
+private const val RESOURCE_PATH = "/static/source-data.json"
 
 @Service
 class FeatureService {
     private lateinit var features: List<FeatureCollection.Feature>
     fun getFeatures(): List<FeatureCollection.Feature> {
         if (!this::features.isInitialized)
-            features = ClassPathResource("/static/source-data.json").file.readText()
+            features = ClassPathResource(RESOURCE_PATH).file.readText()
                 .let { jsonString ->
                     jacksonObjectMapper().readValue<List<FeatureCollection>>(jsonString)
                 }.flatMap {
@@ -30,7 +32,7 @@ class FeatureService {
                     }
                 }
                 .ifEmpty {
-                    throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No features found")
+                    throw EmptyDatabaseException()
                 }
         return features
     }
@@ -39,7 +41,7 @@ class FeatureService {
         getFeatures()
             .filter { it.id == searchId }
             .ifEmpty {
-                throw ResponseStatusException(HttpStatus.NOT_FOUND, "No features found with ID: $searchId")
+                throw FeatureNotFoundException(searchId)
             }.first()
 
     fun getFeatureQuicklookById(searchId: UUID): ByteArray {
